@@ -40,8 +40,8 @@ class Breakout {
         this.canvas = options.canvas;
         this.context = this.canvas.getContext('2d');
         //ゲーム画面のサイズを取得
-        Breakout.width = canvas.width;
-        Breakout.height = canvas.height;
+        Breakout.width = this.canvas.width;
+        Breakout.height = this.canvas.height;
         //内部で使用するプロパティの初期化
         this.leftKey = false;
         this.rightKey = false;
