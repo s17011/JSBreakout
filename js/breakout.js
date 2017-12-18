@@ -306,7 +306,7 @@ class Block extends Entity {
      */
     hit(ball) {
         ball.removeTarget(this);
-        // 描画しないようにする
+        this.manager.removeTarget(this);
     }
 }
 
@@ -398,7 +398,7 @@ class Ball {
 
         const side = this.collision();
         if ((side & 0x01) !== 0) {
-            this.dy *= -1;
+            this.dx *= -1;
         }
         if ((side & 0x02) !== 0) {
             this.dy *= -1;
