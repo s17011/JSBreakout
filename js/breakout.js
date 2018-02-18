@@ -65,7 +65,7 @@ class Breakout {
             options.paddle.height,
             options.paddle.color);
 
-        this.paddle.setPosition(Breakout.width / 2 ,Breakout.height * 8 / 9);
+        this.paddle.setPosition(Breakout.width / 2, Breakout.height * 8 / 9);
         this.paddle.setSpeed(Breakout.width / 100);
 
         // ブロックマネージャの初期化
@@ -134,43 +134,34 @@ class Breakout {
 }
 
 class Entity {
-    get left() {
-        return this.x - this.width / 2;
+    constructor() {
+        this.x = 0;
+        this.y = 0;
+        this.width = 0;
+        this.height = 0;
     }
 
-    get top() {
-        return this.y - this.height / 2;
-    }
-
-    get right() {
-        return this.x + this.width / 2;
-    }
-
-    get bottom() {
-        return this.y + this.height / 2;
-    }
-
-    constructor(x, y, width, height) {
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-    }
-}
-
-class Collideable extends Entity {
-    constructor(x, y, width, height) {
-        super(x, y, width, height);
+    getCornerPoints() {
+        return [
+            {x: this.x - this.width / 2, y: this.y - this.height / 2},
+            {x: this.x + this.width / 2, y: this.y - this.height / 2},
+            {x: this.x + this.width / 2, y: this.y + this.height / 2},
+            {x: this.x - this.width / 2, y: this.y + this.height / 2}
+        ]
     }
 
     hit(ball) {
     }
 }
 
-class Paddle extends Collideable {
+class Paddle extends Entity {
     constructor(width, height, color) {
-        super(0, 0, width, height);
+        super();
+        this.width = width;
+        this.height = height;
         this.color = color;
+        this.x = 0;
+        this.y = 0;
         this.speed = 0;
     }
 
@@ -184,7 +175,8 @@ class Paddle extends Collideable {
 
         context.translate(this.x, this.y);
         context.fillStyle = this.color;
-        context.fillRect(-(this.width / 2), -(this.height / 2), this.width, this.height);
+        context.fillRect(-(this.width / 2), -(this.height / 2),
+            this.width, this.height);
 
         context.restore();
     }
@@ -255,7 +247,7 @@ class Paddle extends Collideable {
     }
 }
 
-class Block extends Collideable {
+class Block extends Entity {
     static get colorSet() {
         return [
             ['Pink', 'Crimson'],
@@ -278,12 +270,16 @@ class Block extends Collideable {
     }
 
     constructor(manager, x, y, width, height, color) {
-        super(x, y, width, height);
+        super();
         this.manager = manager;
+        this.width = width;
+        this.height = height;
         if (color >= Block.colorSet.length) {
             color = Block.colorSet.length - 1;
         }
         this.color = Block.colorSet[color];
+        this.x = x;
+        this.y = y;
     }
 
     /**
@@ -312,6 +308,11 @@ class Block extends Collideable {
     hit(ball) {
         ball.removeTarget(this);
         this.manager.removeTarget(this);
+
+        let tag=document.getElementById("score");
+        let score = Number(tag.innerHTML);
+        score += 1;
+        tag.innerHTML = score;
     }
 }
 
@@ -345,11 +346,12 @@ class BlockManager {
     }
 }
 
-class Ball extends Entity {
+class Ball {
     constructor(radius, color) {
-        super(0, 0, radius * 2, radius * 2);
         this.radius = radius;
         this.color = color;
+        this.x = 0;
+        this.y = 0;
         this.dx = 0;
         this.dy = 0;
         this.targetList = [];
@@ -419,20 +421,40 @@ class Ball extends Entity {
                 return false;
             }
 
-            // 各側面のチェック
-            if (target.left < this.right && this.left < target.right) {
-                if (target.top < this.bottom && this.top < target.bottom) {
+            const points = target.getCornerPoints();
+            // 角チェック
+            /*
+            points.forEach((point) => {
+                const a = Math.sqrt(
+                    Math.pow(this.x - point.x, 2) + Math.pow(this.y - point.y, 2));
+                if (a <= this.radius) {
+                    collideSide = 3;
                     target.hit(this);
-                    const distanceLeft = Math.abs(target.left - this.right);
-                    const distanceTop = Math.abs(target.top - this.bottom);
-                    const distanceRight = Math.abs(target.right - this.left);
-                    const distanceBottom = Math.abs(target.bottom - this.top);
-                    const min = Math.min(distanceLeft, distanceTop, distanceRight, distanceBottom);
+                }
+            }, this);
+            if (collideSide !== 0) {
+                return false;
+            }
+            */
 
-                    if (min === distanceLeft || min === distanceRight) {
+            // 各側面のチェック
+            const bl = this.x - this.radius;
+            const br = this.x + this.radius;
+            const bt = this.y - this.radius;
+            const bb = this.y + this.radius;
+            if (points[0].x < br && bl < points[1].x) {
+                if (points[0].y < bb && bt < points[2].y) {
+                    target.hit(this);
+                    const dl = Math.abs(points[0].x - br);
+                    const dt = Math.abs(points[0].y - bb);
+                    const dr = Math.abs(points[1].x - bl);
+                    const db = Math.abs(points[2].y - bt);
+                    const min = Math.min(dl, dt, dr, db);
+
+                    if (min === dl || min === dr) {
                         collideSide += 1;
                     }
-                    if (min === distanceTop || min === distanceBottom) {
+                    if (min === dt || min === db) {
                         collideSide += 2;
                     }
                 }
@@ -531,3 +553,4 @@ class Ball extends Entity {
         context.restore();
     }
 }
+
