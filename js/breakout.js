@@ -309,10 +309,10 @@ class Block extends Entity {
         ball.removeTarget(this);
         this.manager.removeTarget(this);
 
-        let tag=document.getElementById("score");
-        let score = Number(tag.innerHTML);
+        let sloth = document.getElementById("score");
+        let score = Number(sloth.innerHTML);
         score += 1;
-        tag.innerHTML = score;
+        sloth.innerHTML = score;
     }
 }
 
